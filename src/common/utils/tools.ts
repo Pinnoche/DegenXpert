@@ -1,7 +1,7 @@
 export const tools = [
   {
     function: {
-      name: 'get_top_holders',
+      name: 'getTopHolders',
       description: 'Fetch top holders of a Solana token given contract address',
       parameters: {
         type: 'object',
@@ -11,12 +11,13 @@ export const tools = [
         },
         required: ['address'],
       },
+      strict: true,
     },
     type: 'function' as const,
   },
   {
     function: {
-      name: 'get_token_data',
+      name: 'getTokenData',
       description: 'Look up a solana token stats by its contract address',
       parameters: {
         type: 'object',
@@ -31,15 +32,16 @@ export const tools = [
   },
   {
     function: {
-      name: 'get_graduated_tokens',
+      name: 'getGraduatedTokens',
       description: 'Fetch recently graduated or newly bonded Pump.fun tokens',
       parameters: { type: 'object', properties: {} },
+      strict: true,
     },
     type: 'function' as const,
   },
   {
     function: {
-      name: 'get_solana_wallet_swap_history',
+      name: 'getSolanaWalletSwapHistory',
       description:
         'Get swap transactions of a Solana wallet address with the provided wallet address.',
       parameters: {
@@ -49,6 +51,7 @@ export const tools = [
           limit: { type: 'number', description: 'Number of swaps to fetch' },
         },
         required: ['wallet'],
+        strict: true,
       },
     },
     type: 'function' as const,

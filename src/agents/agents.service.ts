@@ -115,6 +115,7 @@ AVAILABLE TOOLS:
       ],
       tools,
       tool_choice: 'auto',
+      // stream: true,
     });
 
     const message = completion.choices[0].message;
