@@ -5,7 +5,7 @@ import OpenAI from 'openai';
 import { firstValueFrom } from 'rxjs';
 import { fetchSolanaWallet } from 'src/common/utils/solanaWallet';
 import { Holders, TopHolders } from 'src/common/utils/topHolders';
-// import { tools } from 'src/common/utils/tools';
+import { tools } from 'src/common/utils/tools';
 
 interface DexscreenerResponse {
   pairs: [
@@ -73,6 +73,7 @@ interface Token {
 @Injectable()
 export class AgentsService {
   private openai: OpenAI;
+  private modelName: string;
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
@@ -81,47 +82,123 @@ export class AgentsService {
       baseURL: process.env.FIREWORKS_BASEURL,
       apiKey: process.env.FIREWORKS_AI_API_KEY,
     });
+    this.modelName = process.env.FIREWORKS_MODEL_NAME || '';
   }
 
   async askAgent(question: string) {
     const systemPrompt = `
-   You are DMJ, a sharp, helpful crypto agent that helps users check solana token stats, top holders, new launches, and wallet activity.
-    You have access to the following tools:
-'tokenData(ca)' tool — when user asks for token price, FDV, symbol, volume, or address-based lookup. Requires a contract/token address → returns token live data and risk analysis.
- 'getTopHolders(address, limit)' tool — to list top holders for a token. If the token address is missing, ask the user for it → returns top token holders.
- 'graduatedTokens()' tool — when user asks for new tokens, fresh launches, or newly bonded/graduated tokens. This tool requires no input, and you must **never ask user for any contract/wallet address** for this action. Just call the tool immediately → returns recently bonded Pump.fun tokens.
-'getWalletSwaps(wallet, limit)' tool — to get swap history for a specific wallet (buys/sells). Requires a wallet address → returns wallet swap history.
-Use the tools to answer user questions. Always check if you have all required parameters for a tool before using it. If any required parameter is missing, ask the user for it. Always treat contract addresses as case-sensitive (no transformations). Solana addresses are 32–44 characters.
+You are DMJ, a sharp, helpful crypto agent that helps users check solana token stats, top holders, new launches, and wallet activity.
+You can chat normally with the user AND you can use tools for crypto-specific queries.
 
----
-Here are some SMART RULES to follow:
+AVAILABLE TOOLS:
+1. 'getTokenData(ca)' — ONLY if the user asks for token stats (price, FDV, symbol, volume). Requires a valid token/contract address.
+2. 'getTopHolders(address, limit)' — ONLY if the user explicitly asks for top holders of a token. Requires a valid token address.
+3. 'getGraduatedTokens()' — ONLY if the user explicitly asks about new tokens, fresh launches, or recently bonded tokens. No input required.
+4. 'getSolanaWalletSwapHistory(wallet, limit)' — ONLY if the user explicitly asks for wallet activity, buys, sells, or swaps. Requires a valid wallet address.
 
-- Never auto-generate response to questions that's not greeting, if unsure, ask to clarify
-- Only give answers to crypto or degen related questions that you can use tools for
-- Never disclose your methods or show any related code or functions
-- Always treat token/contract addresses as case-sensitive (no transformations).
-- Solana addresses are 32–44 characters.
-- If you’re unsure which tool to use, ask the user to clarify.
-- Give friendly user related error message if any of the tools returns an error.
-- Keep responses short, useful, and formatted (show token address, price, FDV, market cap where relevant).
-- Always use the tools to get real-time data, never make up data.
-Respond confidently. Be concise but informative.
-    `;
+🚨 VERY IMPORTANT RULES:
+- Do NOT call any tool unless the user explicitly requests one of the above crypto actions.
+- For questions like "what can you do?", greetings, or general chat, reply naturally — DO NOT use tools.
+- If a required parameter (like token address) is missing, politely ask for it instead of guessing.
+- Never fabricate answers. Always rely on tools for real-time data.
+- Always treat Solana addresses as case-sensitive (32–44 characters).
+- Keep responses short, confident, and user-friendly.
+- Never explain tool logic or mention tools unless you’re calling one.
+
+`;
 
     const completion = await this.openai.chat.completions.create({
-      model: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
+      model: this.modelName,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: question },
       ],
-      // tools: tools.map((tool) => ({
-      //   type: 'function',
-      //   function: tool,
-      // })),
-      // tool_choice: 'auto',
+      tools,
+      tool_choice: 'auto',
     });
 
-    return completion.choices[0].message;
+    const message = completion.choices[0].message;
+
+    if (message.tool_calls) {
+      for (const call of message.tool_calls ?? []) {
+        if (call.type === 'function') {
+          const { name, arguments: argsJson } = call.function as {
+            name: string;
+            arguments: string;
+          };
+
+          try {
+            let toolResponse: any;
+            const args = JSON.parse(argsJson) as string | Record<string, any>;
+            switch (name) {
+              case 'getTopHolders':
+                {
+                  const { address, limit } = args as {
+                    address: string;
+                    limit?: number;
+                  };
+
+                  toolResponse = await this.getTopHolders(address, limit ?? 10);
+                }
+                break;
+              case 'getTokenData':
+                {
+                  const { ca } = args as { ca: string };
+
+                  toolResponse = await this.getTokenData(ca);
+                }
+                break;
+              case 'getGraduatedTokens':
+                {
+                  toolResponse = await this.getGraduatedTokens();
+                }
+                break;
+              case 'getSolanaWalletSwapHistory':
+                {
+                  const { wallet, limit } = args as {
+                    wallet: string;
+                    limit?: number;
+                  };
+
+                  toolResponse = await this.getSolanaWalletSwapHistory(
+                    wallet,
+                    limit ?? 10,
+                  );
+                }
+                break;
+              default:
+                return { error: `Unknown tool: ${name}` };
+            }
+            const followUp = await this.openai.chat.completions.create({
+              model: 'accounts/fireworks/models/llama-v3p3-70b-instruct',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: question },
+                message,
+                {
+                  role: 'tool',
+                  tool_call_id: call.id,
+                  content: JSON.stringify(toolResponse),
+                },
+              ],
+            });
+            return followUp.choices[0].message.content;
+          } catch (error) {
+            return {
+              error: `Error using tool ${name}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            };
+          }
+        }
+      }
+    }
+    if (message.content?.includes('<think>')) {
+      return this.cleanThinkResponse(message.content);
+    } else if (message.content?.includes('<tool>')) {
+      return this.cleanToolResponse(message.content);
+    }
+    return message.content;
   }
 
   getHello(): string {
@@ -322,5 +399,12 @@ Respond confidently. Be concise but informative.
     if (priceChange24h < -25) score -= 2;
 
     return Math.max(score, 1);
+  }
+
+  private cleanThinkResponse(text: string): string {
+    return text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+  }
+  private cleanToolResponse(text: string): string {
+    return text.replace(/<think>[\s\S]*?<\/tool>/g, '').trim();
   }
 }
