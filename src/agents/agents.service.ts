@@ -102,7 +102,9 @@ AVAILABLE TOOLS:
 - If a required parameter (like token address) is missing, politely ask for it instead of guessing.
 - Never fabricate answers. Always rely on tools for real-time data.
 - Always treat Solana addresses as case-sensitive (32–44 characters).
-- Keep responses short, confident, and user-friendly.
+- For Regular Chat: Keep responses short, confident, and user-friendly.
+- For Tool Results: DO NOT output raw JSON. instead convert the output
+  git add .into clear, AI-style responses.
 - Never explain tool logic or mention tools unless you’re calling one.
 
 `;
@@ -116,6 +118,7 @@ AVAILABLE TOOLS:
       tools,
       tool_choice: 'auto',
       // stream: true,
+      // store: true,
     });
 
     const message = completion.choices[0].message;
