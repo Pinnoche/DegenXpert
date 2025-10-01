@@ -6,6 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { AgentsController } from './agents/agents.controller';
 import { AgentsService } from './agents/agents.service';
+import { APP_GUARD } from '@nestjs/core';
+import { ApiKeyGuard } from './guards/api-key.guards';
 
 @Module({
   imports: [
@@ -14,6 +16,10 @@ import { AgentsService } from './agents/agents.service';
     HttpModule,
   ],
   controllers: [AppController, AgentsController],
-  providers: [AppService, AgentsService],
+  providers: [
+    { provide: APP_GUARD, useClass: ApiKeyGuard },
+    AppService,
+    AgentsService,
+  ],
 })
 export class AppModule {}
