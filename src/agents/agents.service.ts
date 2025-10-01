@@ -206,7 +206,7 @@ AVAILABLE TOOLS:
   }
 
   getHello(): string {
-    return '👋 Hello from Sentient Agent API!';
+    return '👋 Hello from DMJ!. <br /> <br /> DegenXpert is a Solana-focused AI crypto agent. It interacts with users to retrieve real-time token stats, top holder data, wallet tracking, and new token launches for degen traders.';
   }
 
   async getTopHolders(address: string, limit: number) {
