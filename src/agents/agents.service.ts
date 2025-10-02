@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { firstValueFrom } from 'rxjs';
@@ -297,11 +297,12 @@ AVAILABLE TOOLS:
         },
       };
     } catch (error) {
-      console.error('Error in getTokenData:', error);
-      throw new InternalServerErrorException({
-        message: 'Failed to fetch token data',
-        details: error instanceof Error ? error.message : String(error),
-      });
+      return String(error);
+      // console.error('Error in getTokenData:', error);
+      // throw new InternalServerErrorException({
+      //   message: 'Failed to fetch token data',
+      //   details: error instanceof Error ? error.message : String(error),
+      // });
     }
   }
 
@@ -335,9 +336,10 @@ AVAILABLE TOOLS:
         }),
       }));
     } catch (error) {
-      throw new Error(
-        `Failed to fetch graduated tokens: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return String(error);
+      // throw new Error(
+      //   `Failed to fetch graduated tokens: ${error instanceof Error ? error.message : String(error)}`,
+      // );
     }
   }
 
@@ -346,10 +348,11 @@ AVAILABLE TOOLS:
       return await fetchSolanaWallet(wallet, limit);
     } catch (error) {
       console.error('Error in getHistory:', error);
-      throw new InternalServerErrorException({
-        message: 'Failed to fetch history data',
-        details: error instanceof Error ? error.message : String(error),
-      });
+      return String(error);
+      // throw new InternalServerErrorException({
+      //   message: 'Failed to fetch history data',
+      //   details: error instanceof Error ? error.message : String(error),
+      // });
     }
     // return { message: `History for ${address} with limit ${limit}` };
   }
