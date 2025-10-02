@@ -1,3 +1,6 @@
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+
 interface SolanaSwapTx {
   blockTimestamp: string;
   transactionType: 'buy' | 'sell';
@@ -17,37 +20,24 @@ interface SolanaSwapTx {
   transactionHash: string;
 }
 
-export async function fetchSolanaWallet(wallet: string, limit = 10) {
+export async function fetchSolanaWallet(
+  httpService: HttpService,
+  wallet: string,
+  limit = 10,
+) {
   const apiKey = process.env.MORALIS_API_KEY;
   if (!apiKey)
     throw new Error('Missing MORALIS_API_KEY in environment variables');
+  try {
+    const url = `https://solana-gateway.moralis.io/account/mainnet/${wallet}/swaps?limit=${limit}&order=DESC`;
 
-  const res = await fetch(
-    `https://solana-gateway.moralis.io/account/mainnet/${wallet}/swaps?limit=${limit}&order=DESC`,
-    {
-      headers: {
-        accept: 'application/json',
-        'X-API-Key': apiKey,
-      },
-    },
-  );
-
-  if (!res.ok) {
-    const error: unknown = await res.json();
-    throw new Error(
-      `Failed to fetch swaps: ${res.status} - ${JSON.stringify(error)}`,
+    const res = await firstValueFrom(
+      httpService.get(url, {
+        headers: { accept: 'application/json', 'X-API-Key': apiKey },
+      }),
     );
-  }
 
-  const json: unknown = await res.json();
-  if (
-    typeof json === 'object' &&
-    json !== null &&
-    'result' in json &&
-    Array.isArray((json as any).result)
-  ) {
-    const data = json as { result: SolanaSwapTx[] };
-    // continue using data below
+    const data = res.data as { result: SolanaSwapTx[] };
 
     const formatted = data.result.map((tx: SolanaSwapTx) => {
       const date = new Date(tx.blockTimestamp).toLocaleDateString('en-US', {
@@ -91,7 +81,10 @@ export async function fetchSolanaWallet(wallet: string, limit = 10) {
         totalValueUsd: tx.totalValueUsd,
       };
     });
-
     return formatted;
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch top holders: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }

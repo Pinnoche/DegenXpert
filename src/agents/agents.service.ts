@@ -298,11 +298,6 @@ AVAILABLE TOOLS:
       };
     } catch (error) {
       return String(error);
-      // console.error('Error in getTokenData:', error);
-      // throw new InternalServerErrorException({
-      //   message: 'Failed to fetch token data',
-      //   details: error instanceof Error ? error.message : String(error),
-      // });
     }
   }
 
@@ -337,24 +332,16 @@ AVAILABLE TOOLS:
       }));
     } catch (error) {
       return String(error);
-      // throw new Error(
-      //   `Failed to fetch graduated tokens: ${error instanceof Error ? error.message : String(error)}`,
-      // );
     }
   }
 
   async getSolanaWalletSwapHistory(wallet: string, limit: number) {
     try {
-      return await fetchSolanaWallet(wallet, limit);
+      return await fetchSolanaWallet(this.httpService, wallet, limit);
     } catch (error) {
       console.error('Error in getHistory:', error);
       return String(error);
-      // throw new InternalServerErrorException({
-      //   message: 'Failed to fetch history data',
-      //   details: error instanceof Error ? error.message : String(error),
-      // });
     }
-    // return { message: `History for ${address} with limit ${limit}` };
   }
 
   private getTradeJustification({

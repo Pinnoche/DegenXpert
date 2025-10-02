@@ -15,8 +15,7 @@ export async function TopHolders(
   limit = 10,
 ) {
   const apiKey = process.env.MORALIS_API_KEY;
-  if (!apiKey)
-    throw new Error('Missing MORALIS_API_KEY in environment variables');
+  if (!apiKey) throw new Error('Missing API_KEY in environment variables');
   try {
     const url = `https://solana-gateway.moralis.io/token/mainnet/${address}/top-holders?limit=${limit}`;
     const res = await firstValueFrom(
