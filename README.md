@@ -28,3 +28,15 @@ cp .env.example .env
 
 # Run the app
 npm run start:dev
+
+🧑‍💻 **Author**
+
+DMJ (pinnoche)
+
+GitHub: @pinnoche
+
+LinkedIn: (https://www.linkedin.com/in/pinnoche)
+
+🪪 License
+
+This project is licensed under the MIT License.
