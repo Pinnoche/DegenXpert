@@ -117,8 +117,6 @@ AVAILABLE TOOLS:
       ],
       tools,
       tool_choice: 'auto',
-      // stream: true,
-      // store: true,
     });
 
     const message = completion.choices[0].message;
@@ -203,6 +201,72 @@ AVAILABLE TOOLS:
       return this.cleanToolResponse(message.content);
     }
     return message.content;
+  }
+
+  async streamAgent(question: string) {
+    const systemPrompt = `
+You are DMJ, a sharp, helpful crypto agent that helps users check solana token stats, top holders, new launches, and wallet activity.
+You can chat normally with the user AND you can use tools for crypto-specific queries.
+
+AVAILABLE TOOLS:
+1. 'getTokenData(ca)' — ONLY if the user asks for token stats (price, FDV, symbol, volume). Requires a valid token/contract address.
+2. 'getTopHolders(address, limit)' — ONLY if the user explicitly asks for top holders of a token. Requires a valid token address.
+3. 'getGraduatedTokens()' — ONLY if the user explicitly asks about new tokens, fresh launches, or recently bonded tokens. No input required.
+4. 'getSolanaWalletSwapHistory(wallet, limit)' — ONLY if the user explicitly asks for wallet activity, buys, sells, or swaps. Requires a valid wallet address.
+
+🚨 VERY IMPORTANT RULES:
+- Do NOT call any tool unless the user explicitly requests one of the above crypto actions.
+- For questions like "what can you do?", greetings, or general chat, reply naturally — DO NOT use tools.
+- If a required parameter (like token address) is missing, politely ask for it instead of guessing.
+- Never fabricate answers. Always rely on tools for real-time data.
+- Always treat Solana addresses as case-sensitive (32–44 characters).
+- For Regular Chat: Keep responses short, confident, and user-friendly.
+- For Tool Results: DO NOT output raw JSON. instead convert the output
+  git add .into clear, AI-style responses.
+- Never explain tool logic or mention tools unless you’re calling one.
+
+`;
+    const stream = await this.openai.chat.completions.create({
+      model: this.modelName,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: question },
+      ],
+      tools,
+      tool_choice: 'auto',
+      stream: true,
+      // store: true,
+    });
+
+    // const streamChunks = [];
+    let buffer: string = '';
+    let insideThink: boolean = false;
+    for await (const chunk of stream) {
+      const message = chunk.choices[0]?.delta?.content || '';
+      const content = chunk.choices[0]?.delta;
+
+      // console.log('Chunk:', content);
+      if (!message) continue;
+      buffer += message;
+
+      if (content?.tool_calls) {
+        console.log('Tool Call:', content.tool_calls);
+      }
+
+      if (message.includes('<think>')) insideThink = true;
+
+      if (message.includes('</think>')) {
+        insideThink = false;
+        buffer = this.cleanThinkResponse(buffer);
+      }
+
+      if (!insideThink && buffer.trim()) {
+        const cleanContent = buffer.trim();
+
+        console.log('Stream:', cleanContent);
+        return cleanContent;
+      }
+    }
   }
 
   getHello(): string {
