@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { AgentsService } from './agents.service';
+import { Response } from 'express';
 
 @Controller('agents')
 export class AgentsController {
@@ -16,6 +17,18 @@ export class AgentsController {
       throw new Error('Question is required');
     }
     return await this.agentsService.askAgent(question);
+  }
+
+  @Post('stream')
+  async stream(@Body('question') question: string, @Res() res: Response) {
+    res.setHeader('content-type', 'text/event-stream');
+    res.setHeader('cache-control', 'no-cache');
+    res.setHeader('connection', 'keep-alive');
+    res.flushHeaders(); // flush the headers to establish SSE with client
+    if (!question) {
+      throw new Error('Question is required');
+    }
+    return await this.agentsService.streamAgent(question);
   }
 
   @Get('top-holders')
