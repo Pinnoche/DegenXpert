@@ -241,15 +241,35 @@ AVAILABLE TOOLS:
     // const streamChunks = [];
     let buffer: string = '';
     let insideThink: boolean = false;
+
+    const toolCallBuffer: Record<
+      string,
+      { name?: string; arguments?: string }
+    > = {};
+
     for await (const chunk of stream) {
       const message = chunk.choices[0]?.delta?.content || '';
       const content = chunk.choices[0]?.delta;
 
-      // console.log('Chunk:', content);
-      if (!message) continue;
+      console.log('Chunk:', content);
+      // if (!message) continue;
       buffer += message;
 
       if (content?.tool_calls) {
+        for (const tool of content.tool_calls ?? []) {
+          const id = tool.id || Object.keys(toolCallBuffer)[0] || 'default';
+          if (!toolCallBuffer[id]) {
+            toolCallBuffer[id] = { name: '', arguments: '' };
+          }
+
+          if (tool.function?.name) {
+            toolCallBuffer[id].name = tool.function.name;
+          }
+
+          if (tool.function?.arguments) {
+            toolCallBuffer[id].arguments += tool.function.arguments;
+          }
+        }
         console.log('Tool Call:', content.tool_calls);
       }
 
@@ -265,6 +285,21 @@ AVAILABLE TOOLS:
 
         console.log('Stream:', cleanContent);
         return cleanContent;
+      }
+    }
+
+    for (const [id, call] of Object.entries(toolCallBuffer)) {
+      if (!call.name) continue;
+      try {
+        const parsedArgs = JSON.parse(call.arguments || '{}') as
+          | string
+          | Record<string, any>;
+        console.log('Final Tool Call:', {
+          name: call.name,
+          arguments: parsedArgs,
+        });
+      } catch (error) {
+        return String(error);
       }
     }
   }
