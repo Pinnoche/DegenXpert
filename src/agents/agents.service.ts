@@ -60,7 +60,7 @@ interface DexscreenerResponse {
 }
 
 interface Token {
-  tokenAddress: string;
+  address: string;
   name: string;
   symbol: string;
   priceUsd: string;
@@ -379,13 +379,13 @@ AVAILABLE TOOLS:
       );
       const data = res.data as { result: Token[] };
       return data.result.map((token: Token) => ({
-        address: token.tokenAddress,
+        address: token.address,
         name: token.name,
         symbol: token.symbol,
         priceUsd: `$${token.priceUsd}`,
         liquidity: token.liquidity ?? 'N/A',
         fdv: token.fullyDilutedValuation ?? 'N/A',
-        logo: token.logo ?? null,
+        // logo: token.logo ?? null,
         graduatedAt: new Date(token.graduatedAt).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
