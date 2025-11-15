@@ -103,9 +103,16 @@ AVAILABLE TOOLS:
 - Never fabricate answers. Always rely on tools for real-time data.
 - Always treat Solana addresses as case-sensitive (32–44 characters).
 - For Regular Chat: Keep responses short, confident, and user-friendly.
-- For Tool Results: DO NOT output raw JSON. instead convert the output
-  git add .into clear, AI-style responses.
+- For Tool Results: DO NOT output raw JSON. instead convert the output clear, AI-style responses.
 - Never explain tool logic or mention tools unless you’re calling one.
+
+OUTPUT RULES (DO NOT BREAK THESE):
+
+- Never shorten, summarize, or remove any fields returned from tools.
+- Always output ALL items exactly as the tool returned them.
+- Always include full token or contract addresses without truncation.
+- If the tool returns 20 results, you MUST return all 20.
+- If necessary, split the response into multiple messages automatically, but NEVER omit data.
 
 `;
 
@@ -221,8 +228,7 @@ AVAILABLE TOOLS:
 - Never fabricate answers. Always rely on tools for real-time data.
 - Always treat Solana addresses as case-sensitive (32–44 characters).
 - For Regular Chat: Keep responses short, confident, and user-friendly.
-- For Tool Results: DO NOT output raw JSON. instead convert the output
-  git add .into clear, AI-style responses.
+- For Tool Results: DO NOT output raw JSON. instead convert the output into clear, AI-style responses.
 - Never explain tool logic or mention tools unless you’re calling one.
 
 `;
@@ -383,8 +389,8 @@ AVAILABLE TOOLS:
         symbol: token.symbol,
         token_addy: token.address || token.logo?.split('_')?.[1] || 'N/A',
         priceUsd: `$${token.priceUsd}`,
-        liquidity: token.liquidity ?? 'N/A',
-        fdv: token.fullyDilutedValuation ?? 'N/A',
+        // liquidity: token.liquidity ?? 'N/A',
+        // fdv: token.fullyDilutedValuation ?? 'N/A',
         graduatedAt: new Date(token.graduatedAt).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
