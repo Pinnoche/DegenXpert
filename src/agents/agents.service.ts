@@ -379,13 +379,12 @@ AVAILABLE TOOLS:
       );
       const data = res.data as { result: Token[] };
       return data.result.map((token: Token) => ({
-        contract_address: token.address || token.logo?.split('_')?.[1] || 'N/A',
         name: token.name,
         symbol: token.symbol,
+        contract_address: token.address || token.logo?.split('_')?.[1] || 'N/A',
         priceUsd: `$${token.priceUsd}`,
         liquidity: token.liquidity ?? 'N/A',
         fdv: token.fullyDilutedValuation ?? 'N/A',
-        // logo: token.logo ?? null,
         graduatedAt: new Date(token.graduatedAt).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
@@ -393,6 +392,7 @@ AVAILABLE TOOLS:
           hour: '2-digit',
           minute: '2-digit',
         }),
+        // logo: token.logo ?? null,
       }));
     } catch (error) {
       return String(error);
