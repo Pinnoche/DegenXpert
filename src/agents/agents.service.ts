@@ -383,8 +383,8 @@ AVAILABLE TOOLS:
         symbol: token.symbol,
         contract_address: token.address || token.logo?.split('_')?.[1] || 'N/A',
         priceUsd: `$${token.priceUsd}`,
-        liquidity: token.liquidity ?? 'N/A',
-        fdv: token.fullyDilutedValuation ?? 'N/A',
+        // liquidity: token.liquidity ?? 'N/A',
+        // fdv: token.fullyDilutedValuation ?? 'N/A',
         graduatedAt: new Date(token.graduatedAt).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
