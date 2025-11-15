@@ -379,7 +379,7 @@ AVAILABLE TOOLS:
       );
       const data = res.data as { result: Token[] };
       return data.result.map((token: Token) => ({
-        address: token.address,
+        address: token.address || token.logo?.split('_')?.[1] || 'N/A',
         name: token.name,
         symbol: token.symbol,
         priceUsd: `$${token.priceUsd}`,
