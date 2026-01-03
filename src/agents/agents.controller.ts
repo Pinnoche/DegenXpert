@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AgentsService } from './agents.service';
 import { Response } from 'express';
+import { ApiKeyGuard } from 'src/guards/api-key.guards';
 
+@UseGuards(ApiKeyGuard)
 @Controller('agents')
 export class AgentsController {
   constructor(private readonly agentsService: AgentsService) {}
@@ -24,7 +34,7 @@ export class AgentsController {
     res.setHeader('content-type', 'text/event-stream');
     res.setHeader('cache-control', 'no-cache');
     res.setHeader('connection', 'keep-alive');
-    res.flushHeaders(); // flush the headers to establish SSE with client
+    res.flushHeaders();
     if (!question) {
       throw new Error('Question is required');
     }
