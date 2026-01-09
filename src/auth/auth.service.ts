@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from './entities/user.schema';
+import { User } from './schema/user.schema';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcryptjs';
 import { SignupDto } from './dto/signup.dto';
@@ -60,9 +60,7 @@ export class AuthService {
   async refreshToken(token: string): Promise<{ token: string }> {
     const payload: { _id: string; email: string } =
       await this.jwtService.verifyAsync(token);
-    const user = await this.userModel.findOne({
-      _id: payload._id,
-    });
+    const user = await this.userModel.findById(payload._id);
     if (!user) {
       throw new NotFoundException('User Not Found');
     }

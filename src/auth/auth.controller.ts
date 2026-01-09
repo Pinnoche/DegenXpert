@@ -47,6 +47,12 @@ export class AuthController {
     return token;
   }
 
+  @Post('refresh-token')
+  @UseGuards(JwtAuthGuard)
+  async refreshToken(@Req() req: UserRequestType): Promise<{ token: string }> {
+    return await this.authService.refreshToken(req.user.token);
+  }
+
   @Post('api-key')
   @UseGuards(JwtAuthGuard)
   async newKey(@Req() req: UserRequestType): Promise<string> {
@@ -61,5 +67,16 @@ export class AuthController {
       name: req.user?.name,
       email: req.user?.email,
     };
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  logout(@Res({ passthrough: true }) res: Response): { message: string } {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    return { message: 'Logged out successfully' };
   }
 }

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { AgentsService } from './agents.service';
 import { Response } from 'express';
-import { ApiKeyGuard } from 'src/guards/api-key.guards';
+import { ApiKeyGuard } from 'src/guards/api-key.guard';
 
 @UseGuards(ApiKeyGuard)
 @Controller('agents')

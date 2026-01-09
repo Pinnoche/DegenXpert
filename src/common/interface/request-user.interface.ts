@@ -6,5 +6,6 @@ export interface UserRequestType extends Request {
     email: string;
     name: string;
     apiKey: string;
+    token: string;
   };
 }
