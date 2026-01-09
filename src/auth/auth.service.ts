@@ -52,7 +52,7 @@ export class AuthService {
     }
     const isPassword = await bcrypt.compare(password, user.password);
     if (!isPassword) {
-      throw new UnauthorizedException('Invalid Email or Password');
+      throw new NotFoundException('Invalid Email or Password');
     }
     return await this.generateJwt(user);
   }
