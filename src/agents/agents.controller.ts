@@ -10,7 +10,9 @@ import {
 import { AgentsService } from './agents.service';
 import { Response } from 'express';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
+import { Throttle } from '@nestjs/throttler';
 
+@Throttle({ default: { limit: 20, ttl: 60000 } })
 @UseGuards(ApiKeyGuard)
 @Controller('agents')
 export class AgentsController {

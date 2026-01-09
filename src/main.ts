@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://degenxpert.xyz'],
+    origin: [process.env.FRONTEND_URL, process.env.LOCAL_URL],
     credentials: true,
   });
   await app.listen(process.env.PORT ?? 3000);
