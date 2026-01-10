@@ -6,6 +6,7 @@ import {
   UseGuards,
   Res,
   Req,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -64,6 +65,9 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   profile(@Req() req: UserRequestType): any {
+    if (!req.user) {
+      throw new NotFoundException('User not found');
+    }
     return {
       _id: req.user?._id,
       username: req.user?.username,
