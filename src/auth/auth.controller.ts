@@ -66,7 +66,7 @@ export class AuthController {
   profile(@Req() req: UserRequestType): any {
     return {
       _id: req.user?._id,
-      name: req.user?.name,
+      username: req.user?.username,
       email: req.user?.email,
     };
   }

@@ -4,7 +4,7 @@ export interface UserRequestType extends Request {
   user: {
     _id: string;
     email: string;
-    name: string;
+    username: string;
     apiKey: string;
     token: string;
   };
