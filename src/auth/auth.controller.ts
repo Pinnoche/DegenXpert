@@ -44,7 +44,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 60 * 60 * 24 * 1000,
+      maxAge: 30 * 60 * 60 * 24 * 1000,
       // expires: new Date(Date.now() + 3600000),
     });
     return token;
